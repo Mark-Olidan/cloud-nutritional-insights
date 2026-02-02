@@ -1,0 +1,5 @@
+version: '3'
+services:
+  diet-analysis:
+    build: .
+    container_name: diet-analysis-app
