@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nutritional Insights</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#f4f6f8;
+}
+
+header{
+    background:#2f66d0;
+    color:white;
+    padding:15px 40px;
+    font-size:24px;
+}
+
+.container{
+    width:90%;
+    margin:auto;
+}
+
+h2{
+    margin-top:30px;
+}
+
+.cards{
+    display:flex;
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    width:220px;
+    border-radius:8px;
+    box-shadow:0px 2px 6px rgba(0,0,0,0.1);
+}
+
+.card:hover{
+    transform:scale(1.02);
+}
+
+.filters{
+    margin-top:20px;
+}
+
+input,select{
+    padding:8px;
+    margin-right:10px;
+}
+
+.buttons{
+    margin-top:20px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:4px;
+    color:white;
+    cursor:pointer;
+}
+
+.btn-blue{background:#2f66d0;}
+.btn-green{background:#2fa36b;}
+.btn-purple{background:#7c4dff;}
+
+.pagination{
+    margin:30px 0;
+}
+
+.pagination button{
+    background:#ccc;
+    color:black;
+}
+
+footer{
+    background:#2f66d0;
+    color:white;
+    text-align:center;
+    padding:12px;
+}
+
+canvas{
+    margin-top:40px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+Nutritional Insights
+</header>
+
+<div class="container">
+
+<h2>Explore Nutritional Insights</h2>
+
+<div class="cards">
+
+<div class="card">
+<h4>Bar Chart</h4>
+<p>Average macronutrient content by diet type.</p>
+</div>
+
+<div class="card">
+<h4>Scatter Plot</h4>
+<p>Nutrient relationships (protein vs carbs).</p>
+</div>
+
+<div class="card">
+<h4>Heatmap</h4>
+<p>Nutrient correlations.</p>
+</div>
+
+<div class="card">
+<h4>Pie Chart</h4>
+<p>Recipe distribution by diet type.</p>
+</div>
+
+</div>
+
+<h2>Filters and Data Interaction</h2>
+
+<div class="filters">
+
+<input id="dietSearch" placeholder="Search by Diet Type">
+
+<select id="dietFilter">
+<option value="">All Diet Types</option>
+<option>Vegan</option>
+<option>Keto</option>
+<option>Paleo</option>
+<option>Mediterranean</option>
+</select>
+
+</div>
+
+<h2>API Data Interaction</h2>
+
+<div class="buttons">
+
+<button class="btn-blue" onclick="getInsights()">Get Nutritional Insights</button>
+<button class="btn-green" onclick="getRecipes()">Get Recipes</button>
+<button class="btn-purple" onclick="getClusters()">Get Clusters</button>
+
+</div>
+
+<canvas id="chart"></canvas>
+
+<h2>Pagination</h2>
+
+<div class="pagination">
+<button>Previous</button>
+<button>1</button>
+<button>2</button>
+<button>Next</button>
+</div>
+
+</div>
+
+<footer>
+© 2025 Nutritional Insights. All Rights Reserved.
+</footer>
+
+<script>
+
+async function getInsights(){
+
+const response = await fetch("/api/insights");
+const data = await response.json();
+
+const labels = data.map(x => x.Diet_type)
+const protein = data.map(x => x["Protein(g)"])
+
+const ctx = document.getElementById('chart')
+
+new Chart(ctx,{
+type:'bar',
+data:{
+labels:labels,
+datasets:[{
+label:'Average Protein',
+data:protein
+}]
+}
+})
+
+}
+
+async function getRecipes(){
+
+const response = await fetch("/api/recipes");
+const data = await response.json();
+
+console.log(data)
+
+}
+
+async function getClusters(){
+
+const response = await fetch("/api/clusters");
+const data = await response.json();
+
+console.log(data)
+
+}
+
+</script>
+
+</body>
+</html>
