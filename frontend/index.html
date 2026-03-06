@@ -33,27 +33,27 @@ margin:auto;
 }
 
 .section{
-margin-top:40px;
+    padding:0px 150px 0px 150px;
 }
 
 button{
-padding:10px 15px;
-border:none;
-border-radius:4px;
-color:white;
-cursor:pointer;
-margin-right:10px;
+    padding:10px 15px;
+    border:none;
+    border-radius:4px;
+    color:white;
+    cursor:pointer;
+    margin-right:10px;
 }
 
 .blue{background:#2f66d0;}
 .green{background:#2fa36b;}
 
 .chart-box{
-background:white;
-padding:20px;
-margin-top:20px;
-border-radius:8px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    background:white;
+    padding:20px;
+    margin-top:20px;
+    border-radius:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
 table{
@@ -72,174 +72,218 @@ background:#2f66d0;
 color:white;
 }
 
+select{
+    height: 35px;
+    border-radius: 4px;
+}
+
 </style>
 
 </head>
 
-<body>
+    <body>
 
-<header>
-Nutritional Insights Dashboard
-</header>
+        <header>
+            Nutritional Insights Dashboard
+        </header>
 
-<div class="container">
+        <div class="container">
 
-<div class="section">
-<h2>Controls</h2>
+            <div class="section">
+                <h2>Controls</h2>
 
-<button class="blue" onclick="loadInsights()">Load Nutritional Insights</button> <button class="green" onclick="loadRecipes()">Load Recipes</button>
+                <button class="blue" onclick="loadInsights()">Load Nutritional Insights</button> 
+                <button class="green" onclick="loadRecipes()">Load Recipes</button>
 
-<select id="dietFilter">
-<option value="">All Diets</option>
-<option value="Paleo">Paleo</option>
-<option value="Vegan">Vegan</option>
-<option value="Keto">Keto</option>
-<option value="Mediterranean">Mediterranean</option>
-</select>
+                <select id="dietFilter">
+                    <option value="">All Diets</option>
+                    <option value="Paleo">Paleo</option>
+                    <option value="Vegan">Vegan</option>
+                    <option value="Keto">Keto</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                </select>
 
-</div>
+                
 
-<div class="section">
+            </div>
 
-<div class="chart-box">
-<h3>Average Protein by Diet</h3>
-<canvas id="proteinChart"></canvas>
-</div>
+            <div id="insightsSection" class="section">
 
-<div class="chart-box">
-<h3>Diet Distribution</h3>
-<canvas id="dietPie"></canvas>
-</div>
+                <div class="chart-box">
+                    <h3>Average Protein by Diet</h3>
+                    <canvas id="proteinChart"></canvas>
+                </div>
 
-<div class="chart-box">
-<h3>Protein vs Carbs</h3>
-<canvas id="scatterChart"></canvas>
-</div>
+                <div class="chart-box">
+                    <h3>Diet Distribution</h3>
+                    <canvas id="dietPie"></canvas>
+                </div>
 
-</div>
+                <div class="chart-box">
+                    <h3>Protein vs Carbs</h3>
+                    <canvas id="scatterChart"></canvas>
+                </div>
 
-<div class="section">
-
-<h2>Recipe Results</h2>
-
-<table id="recipeTable">
-<thead>
-<tr>
-<th>Diet</th>
-<th>Recipe</th>
-<th>Cuisine</th>
-<th>Protein</th>
-<th>Carbs</th>
-<th>Fat</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-<script>
-
-const API="http://127.0.0.1:5000"
-
-async function loadInsights(){
-
-const response = await fetch(API+"/api/insights")
-const data = await response.json()
-
-const labels = Object.keys(data)
-
-const protein = labels.map(d=>data[d]["Protein(g)"])
-
-new Chart(document.getElementById("proteinChart"),{
-type:'bar',
-data:{
-labels:labels,
-datasets:[{
-label:"Average Protein",
-data:protein
-}]
-}
-})
+            </div>
 
 
-new Chart(document.getElementById("dietPie"),{
-type:'pie',
-data:{
-labels:labels,
-datasets:[{
-data:protein
-}]
-}
-})
+            <div id="recipesSection" class="section" style="display:none">
 
-}
+                <h2>Recipe Results</h2>
 
+                <table id="recipeTable">
+                    <thead>
+                        <tr>
+                        <th>Diet</th>
+                        <th>Recipe</th>
+                        <th>Cuisine</th>
+                        <th>Protein</th>
+                        <th>Carbs</th>
+                        <th>Fat</th>
+                        </tr>
+                    </thead>
 
+                    <tbody></tbody>
 
-async function loadRecipes(){
+                </table>
 
-let diet=document.getElementById("dietFilter").value
+            </div>
 
-let url=API+"/api/recipes"
+        <script>
 
-if(diet){
-url+="?diet_type="+diet
-}
+           const API="http://127.0.0.1:5000"
 
-const response = await fetch(url)
-
-const data = await response.json()
-
-const table=document.querySelector("#recipeTable tbody")
-
-table.innerHTML=""
-
-data.slice(0,20).forEach(r=>{
-
-let row=`
-<tr>
-<td>${r.Diet_type}</td>
-<td>${r.Recipe_name}</td>
-<td>${r.Cuisine_type}</td>
-<td>${r["Protein(g)"]}</td>
-<td>${r["Carbs(g)"]}</td>
-<td>${r["Fat(g)"]}</td>
-</tr>
-`
-
-table.innerHTML+=row
-
-})
+            let proteinChart
+            let dietPie 
+            let scatterChart
 
 
-const scatterData=data.slice(0,100).map(r=>({
-x:r["Protein(g)"],
-y:r["Carbs(g)"]
-}))
+            function showInsights(){
+
+                document.getElementById("insightsSection").style.display="block"
+                document.getElementById("recipesSection").style.display="none"
+
+            }
+
+            function showRecipes(){
+
+                document.getElementById("insightsSection").style.display="none"
+                document.getElementById("recipesSection").style.display="block"
+
+            }
 
 
-new Chart(document.getElementById("scatterChart"),{
-type:'scatter',
-data:{
-datasets:[{
-label:"Protein vs Carbs",
-data:scatterData
-}]
-}
-})
+            async function loadInsights(){
+
+                showInsights()
+
+                const response = await fetch(API+"/api/insights")
+                const data = await response.json()
+
+                const labels = Object.keys(data)
+                const protein = labels.map(d=>data[d]["Protein(g)"])
+
+                if(proteinChart){
+                    proteinChart.destroy()
+                }
+
+                if(dietPie){
+                    dietPie.destroy()
+                }
+
+                proteinChart = new Chart(document.getElementById("proteinChart"),{
+                    type:'bar',
+                    data:{
+                        labels:labels,
+                        datasets:[{
+                            label:"Average Protein",
+                            data:protein
+                        }]
+                    }
+                })
 
 
-}
-window.onload = function () {
-    loadInsights();
-    loadRecipes();
-};
-</script>
-<footer> &copy; 2023 Nutritional Insights Dashboard. All rights reserved. </footer>
-</body>
+                dietPie = new Chart(document.getElementById("dietPie"),{
+                    type:'pie',
+                    data:{
+                        labels:labels,
+                        datasets:[{
+                            data:protein
+                        }]
+                    }
+                })
+            }
+
+
+
+            async function loadRecipes(){
+
+                showRecipes()
+
+                let diet=document.getElementById("dietFilter").value.toLowerCase()
+
+                let url=API+"/api/recipes"
+
+                if(diet){
+                    url+="?diet_type="+diet
+                }
+
+                const response = await fetch(url)
+                const data = await response.json()
+
+                const table=document.querySelector("#recipeTable tbody")
+
+                table.innerHTML=""
+
+                data.slice(0,20).forEach(r=>{
+
+                let row=`
+                    <tr>
+                    <td>${r.Diet_type.charAt(0).toUpperCase() + r.Diet_type.slice(1)}</td>
+                    <td>${r.Recipe_name}</td>
+                    <td>${r.Cuisine_type}</td>
+                    <td>${r["Protein(g)"]}</td>
+                    <td>${r["Carbs(g)"]}</td>
+                    <td>${r["Fat(g)"]}</td>
+                    </tr>
+                    `
+
+                    table.innerHTML+=row
+
+                })
+
+
+                const scatterData=data.slice(0,100).map(r=>({
+                    x:r["Protein(g)"],
+                    y:r["Carbs(g)"]
+                }))
+
+
+                if(scatterChart){
+                    scatterChart.destroy()
+                }
+
+                scatterChart = new Chart(document.getElementById("scatterChart"),{
+                    type:'scatter',
+                    data:{
+                        datasets:[{
+                            label:"Protein vs Carbs",
+                            data:scatterData
+                        }]
+                    }
+                })
+
+            }
+
+
+            window.onload = function () {
+
+                loadInsights()
+
+            }
+        </script>
+        <footer> 
+            &copy; 2023 Nutritional Insights Dashboard. All rights reserved. 
+        </footer>
+    </body>
 </html>
