@@ -1,470 +1,705 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <title>Nutritional Insights Dashboard</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
+  * { box-sizing: border-box; }
 
-body{
-    font-family:Arial;
-    margin:0;
-    background:#f4f6f8;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-}
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f6f8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-header, footer{
-    background:#2f66d0;
-    color:white;
-    padding:20px;
-    text-align:center;
-}
+  header, footer {
+    background: #2f66d0;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
 
-header {
+  header {
     width: 90%;
     align-self: center;
-    font-size:26px;
-    font-weight:bold;
-    letter-spacing:1px;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 1px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-}
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
+  #userBadge {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: normal;
+  }
 
-.container{
-    width:90%;
-    margin:auto;
-    flex:1;
-    margin-bottom: 20px;
-}
+  #userBadge img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
 
-.section{
-    margin-top: 20px;
-}
-
-.charts{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content: center;
-    gap:20px;
-}
-
-button{
-    padding:10px 15px;
-    border:none;
-    border-radius:4px;
-    color:white;
-    cursor:pointer;
-    margin-right:10px;
-}
-
-.blue{background:#2f66d0;}
-.green{background:#2fa36b;}
-
-.chart-box{
-    background:white;
-    margin-top:20px;
-    
-    border-radius:8px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    width: 296px;
-    height:400px;
-}
-
-.chart-box canvas{
-    height:85% !important;
-    width:100% !important;
-    padding-inline: 15px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:8px;
-}
-
-th{
-background:#2f66d0;
-color:white;
-}
-
-select{
-    height: 35px;
+  #logoutBtn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 4px 12px;
     border-radius: 4px;
-}
+    cursor: pointer;
+    font-size: 13px;
+  }
 
-.chart-box h3{
-    text-align:center;  
-    margin:10px 0;
-}
+  .container {
+    width: 90%;
+    margin: auto;
+    flex: 1;
+    margin-bottom: 20px;
+  }
 
-.chart-box{
-    transition:0.2s;
-}
+  .section { margin-top: 20px; }
 
-.chart-box:hover{
-    transform:translateY(-3px);
-    box-shadow:0 4px 10px rgba(0,0,0,0.15);
-}
+  /* ── Login panel ── */
+  #loginPanel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    padding: 40px;
+    max-width: 420px;
+    margin: 40px auto;
+    text-align: center;
+  }
 
+  #loginPanel h2 { margin-bottom: 8px; color: #1a1a2e; }
+  #loginPanel p  { color: #666; font-size: 14px; margin-bottom: 28px; }
+
+  .oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: opacity 0.2s;
+  }
+
+  .oauth-btn:hover { opacity: 0.88; }
+  .btn-google { background: #fff; color: #444; border: 1px solid #ddd; }
+  .btn-github { background: #24292e; color: white; }
+
+  .oauth-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* ── 2FA panel ── */
+  #tfaPanel {
+    display: none;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    padding: 40px;
+    max-width: 420px;
+    margin: 40px auto;
+    text-align: center;
+  }
+
+  #tfaPanel h2 { margin-bottom: 8px; color: #1a1a2e; }
+  #tfaPanel p  { color: #666; font-size: 14px; }
+  #qrImage     { width: 180px; margin: 16px auto; display: block; border-radius: 8px; }
+
+  .tfa-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 22px;
+    letter-spacing: 8px;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin: 16px 0;
+    outline: none;
+  }
+
+  .tfa-input:focus { border-color: #2f66d0; }
+
+  .btn-verify {
+    width: 100%;
+    padding: 12px;
+    background: #2f66d0;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #tfaError { color: #e53e3e; font-size: 14px; margin-top: 8px; display: none; }
+
+  /* ── Dashboard (hidden until auth complete) ── */
+  #dashboard { display: none; }
+
+  /* ── Charts ── */
+  .charts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    gap: 20px;
+  }
+
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+
+  .blue  { background: #2f66d0; }
+  .green { background: #2fa36b; }
+
+  .chart-box {
+    background: white;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    width: 250px;
+    height: 400px;
+    transition: 0.2s;
+  }
+
+  .chart-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  .chart-box canvas {
+    height: 85% !important;
+    width: 100% !important;
+    padding-inline: 15px;
+  }
+
+  .chart-box h3 { text-align: center; margin: 10px 0; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ddd; padding: 8px; }
+  th { background: #2f66d0; color: white; }
+  select { height: 35px; border-radius: 4px; }
+
+  /* ── Security & Compliance ── */
+  .security-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-top: 12px;
+  }
+
+  .security-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+  }
+
+  .security-row:last-child { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .badge-green  { background: #d4edda; color: #1a7a3a; }
+  .badge-blue   { background: #d0e4ff; color: #1a4fa0; }
+  .badge-orange { background: #fff3cd; color: #856404; }
+
+  .security-label { color: #555; min-width: 160px; }
+  #secLastChecked { font-size: 12px; color: #999; margin-top: 10px; }
+
+  /* ── Cleanup ── */
+  .cleanup-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-top: 12px;
+  }
+
+  #cleanupBtn {
+    background: #e53e3e;
+    color: white;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  #cleanupBtn:disabled { opacity: 0.6; cursor: default; }
+
+  #cleanupLog {
+    display: none;
+    background: #1a1a2e;
+    color: #a8ff78;
+    font-family: monospace;
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+    white-space: pre-wrap;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  /* ── Pagination ── */
+  .pagination { display: flex; gap: 6px; margin-top: 16px; justify-content: center; }
+  .page-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+  }
+  .page-btn.active { background: #2f66d0; color: white; border-color: #2f66d0; }
 </style>
-
 </head>
+<body>
 
-    <body>
+<header>
+  <span>Nutritional Insights Dashboard</span>
+  <div id="userBadge">
+    <img id="userAvatar" src="" alt="avatar">
+    <span id="userName"></span>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </div>
+</header>
 
-        <header>
-            Nutritional Insights Dashboard
-        </header>
+<div class="container">
 
-        <div class="container">
+  <!-- ══ LOGIN PANEL ══ -->
+  <div id="loginPanel">
+    <h2>Welcome back</h2>
+    <p>Sign in to access the Nutritional Insights Dashboard</p>
 
-            <div class="section">
-                <button class="blue" onclick="loadInsights()">Get Nutritional Insights</button>
-                <button class="blue" onclick="loadClusters()">Get Clusters</button><br>
-            </div>
+    <button class="oauth-btn btn-google" onclick="loginWith('google')">
+      <!-- Google icon -->
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
 
-            <div id="insightsSection" class="charts">
+    <button class="oauth-btn btn-github" onclick="loginWith('github')">
+      <!-- GitHub icon -->
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Continue with GitHub
+    </button>
+  </div>
 
-                <div class="chart-box">
-                    <h3>Average Macronutrients</h3>
-                    <canvas id="macroBar"></canvas>
-                </div>
+  <!-- ══ 2FA PANEL ══ -->
+  <div id="tfaPanel">
+    <h2>Two-Factor Authentication</h2>
+    <p>Scan this QR code with Google Authenticator or Authy, then enter the 6-digit code below.</p>
+    <img id="qrImage" src="" alt="QR Code">
+    <p style="font-size:12px; color:#999;">First time? Scan the QR code above to set up your authenticator app.</p>
+    <input class="tfa-input" id="tfaCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+    <button class="btn-verify" onclick="verify2FA()">Verify & Continue</button>
+    <div id="tfaError">Incorrect code. Please try again.</div>
+  </div>
 
-                <div class="chart-box">
-                    <h3>Recipe Distribution</h3>
-                    <canvas id="dietPie"></canvas>
-                </div>
+  <!-- ══ MAIN DASHBOARD ══ -->
+  <div id="dashboard">
 
-                <div class="chart-box">
-                    <h3>Protein vs Carbs</h3>
-                    <canvas id="scatterChart"></canvas>
-                </div>
+    <!-- Charts section -->
+    <div class="section">
+      <button class="blue" onclick="loadInsights()">Get Nutritional Insights</button>
+      <button class="green" onclick="loadRecipes()">Get Recipes</button>
+      <button style="background:#7b2fa3;" onclick="loadClusters()">Get Clusters</button>
+    </div>
 
-                <div class="chart-box">
-                    <h3>Nutrient Correlation Heatmap</h3>
-                    <canvas id="heatmapChart"></canvas>
-                </div>
+    <div id="insightsSection" class="charts">
+      <div class="chart-box"><h3>Average Macronutrients</h3><canvas id="macroBar"></canvas></div>
+      <div class="chart-box"><h3>Recipe Distribution</h3><canvas id="dietPie"></canvas></div>
+      <div class="chart-box"><h3>Protein vs Carbs</h3><canvas id="scatterChart"></canvas></div>
+      <div class="chart-box"><h3>Nutrient Correlation Heatmap</h3><canvas id="heatmapChart"></canvas></div>
+    </div>
 
-            </div>
+    <!-- Recipes section -->
+    <div id="recipesSection" class="section">
+      <select id="dietFilter">
+        <option value="">All Diets</option>
+        <option value="paleo">Paleo</option>
+        <option value="vegan">Vegan</option>
+        <option value="keto">Keto</option>
+        <option value="mediterranean">Mediterranean</option>
+      </select>
+      <button class="green" onclick="loadRecipes()">Get Recipes</button>
+      <h2>Recipe Results</h2>
+      <table id="recipeTable">
+        <thead>
+          <tr>
+            <th>Diet</th><th>Recipe</th><th>Cuisine</th>
+            <th>Protein</th><th>Carbs</th><th>Fat</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="pagination" id="pagination"></div>
+    </div>
 
-            
+    <!-- Security & Compliance -->
+    <div class="section">
+      <h2>Security &amp; Compliance</h2>
+      <div class="security-card" id="securityCard">
+        <div style="color:#999; font-size:14px;">Loading security status…</div>
+      </div>
+    </div>
 
+    <!-- Cloud Resource Cleanup -->
+    <div class="section">
+      <h2>Cloud Resource Cleanup</h2>
+      <div class="cleanup-card">
+        <p style="color:#555; margin:0 0 6px;">
+          Ensure that cloud resources are efficiently managed and cleaned up post-deployment.
+        </p>
+        <button id="cleanupBtn" onclick="runCleanup()">&#x1F9F9; Clean Up Resources</button>
+        <pre id="cleanupLog"></pre>
+      </div>
+    </div>
 
-            <div id="recipesSection" class="section">
+  </div><!-- /dashboard -->
+</div>
 
-                <select id="dietFilter">
-                    <option value="">All Diets</option>
-                    <option value="paleo">Paleo</option>
-                    <option value="vegan">Vegan</option>
-                    <option value="keto">Keto</option>
-                    <option value="mediterranean">Mediterranean</option>
-                </select>
-                <button class="green" onclick="loadRecipes()">Get Recipes</button>
+<footer>&copy; 2024 Nutritional Insights Dashboard. All rights reserved.</footer>
 
-                <h2>Recipe Results</h2>
+<script>
+  const API = ""   // same origin — Flask serves both frontend and API
 
-                <table id="recipeTable">
-                    <thead>
-                        <tr>
-                        <th>Diet</th>
-                        <th>Recipe</th>
-                        <th>Cuisine</th>
-                        <th>Protein</th>
-                        <th>Carbs</th>
-                        <th>Fat</th>
-                        </tr>
-                    </thead>
+  // ── Chart instances ──────────────────────────────────────────────────────
+  let macroBar, dietPie, scatterChart, heatmapChart
 
-                    <tbody></tbody>
+  // ── Pagination state ─────────────────────────────────────────────────────
+  let allRecipes = []
+  let currentPage = 1
+  const PAGE_SIZE = 10
 
-                </table>
+  // ═══════════════════════════════════════════════════════════════════════
+  // AUTH
+  // ═══════════════════════════════════════════════════════════════════════
+  function loginWith(provider) {
+    window.location.href = `/auth/login/${provider}`
+  }
 
-            </div>
+  async function logout() {
+    await fetch("/auth/logout", { method: "POST" })
+    window.location.href = "/"
+  }
+
+  async function checkAuth() {
+    const res  = await fetch("/auth/me")
+    const data = await res.json()
+
+    if (!data.authenticated) {
+      showPanel("login")
+      return
+    }
+
+    if (data.awaiting_2fa && !data.verified) {
+      showPanel("2fa")
+      await load2FASetup()
+      return
+    }
+
+    // Fully authenticated
+    showPanel("dashboard")
+    setUserBadge(data.user)
+    loadInsights()
+    loadRecipes()
+    loadSecurityStatus()
+  }
+
+  function showPanel(panel) {
+    document.getElementById("loginPanel").style.display  = panel === "login"     ? "block" : "none"
+    document.getElementById("tfaPanel").style.display    = panel === "2fa"       ? "block" : "none"
+    document.getElementById("dashboard").style.display   = panel === "dashboard" ? "block" : "none"
+  }
+
+  function setUserBadge(user) {
+    const badge  = document.getElementById("userBadge")
+    badge.style.display = "flex"
+    document.getElementById("userAvatar").src = user.avatar || ""
+    document.getElementById("userName").textContent = user.name || user.email
+  }
+
+  // ── 2FA ─────────────────────────────────────────────────────────────────
+  async function load2FASetup() {
+    const res  = await fetch("/auth/2fa/setup")
+    const data = await res.json()
+    if (data.qr_code) {
+      document.getElementById("qrImage").src = data.qr_code
+    }
+  }
+
+  async function verify2FA() {
+    const code = document.getElementById("tfaCode").value.trim()
+    const err  = document.getElementById("tfaError")
+    err.style.display = "none"
+
+    const res  = await fetch("/auth/2fa/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    })
+    const data = await res.json()
+
+    if (data.success) {
+      showPanel("dashboard")
+      setUserBadge(data.user)
+      loadInsights()
+      loadRecipes()
+      loadSecurityStatus()
+    } else {
+      err.style.display = "block"
+      document.getElementById("tfaCode").value = ""
+    }
+  }
+
+  // Allow pressing Enter to submit 2FA code
+  document.getElementById("tfaCode").addEventListener("keydown", e => {
+    if (e.key === "Enter") verify2FA()
+  })
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SECURITY STATUS
+  // ═══════════════════════════════════════════════════════════════════════
+  async function loadSecurityStatus() {
+    const card = document.getElementById("securityCard")
+    try {
+      const res  = await fetch("/api/security-status")
+      const data = await res.json()
+
+      card.innerHTML = `
+        <div class="security-row">
+          <span class="security-label">Encryption</span>
+          <span class="badge badge-green">${data.encryption.enabled ? "Enabled" : "Disabled"}</span>
+          <span style="color:#888; font-size:13px;">${data.encryption.method}</span>
         </div>
-        <footer> 
-            &copy; 2023 Nutritional Insights Dashboard. All rights reserved. 
-        </footer>
+        <div class="security-row">
+          <span class="security-label">Access Control</span>
+          <span class="badge badge-blue">${data.access_control.status}</span>
+          <span style="color:#888; font-size:13px;">${data.access_control.method}</span>
+        </div>
+        <div class="security-row">
+          <span class="security-label">Compliance</span>
+          <span class="badge ${data.compliance.gdpr ? "badge-green" : "badge-orange"}">${data.compliance.label}</span>
+        </div>
+        <div class="security-row">
+          <span class="security-label">Storage Container</span>
+          <span class="badge ${data.storage.container_active ? "badge-green" : "badge-orange"}">
+            ${data.storage.container_active ? "Active" : "Not connected"}
+          </span>
+          ${data.storage.container_active ? `<span style="color:#888;font-size:13px;">${data.storage.blob_count} blobs</span>` : ""}
+        </div>
+        <div id="secLastChecked">Last checked: ${new Date(data.last_checked).toLocaleString()}</div>
+      `
+    } catch (e) {
+      card.innerHTML = `<div style="color:#e53e3e;">Could not load security status.</div>`
+    }
+  }
 
-        <script>
+  // ═══════════════════════════════════════════════════════════════════════
+  // CLEANUP
+  // ═══════════════════════════════════════════════════════════════════════
+  async function runCleanup() {
+    const btn = document.getElementById("cleanupBtn")
+    const log = document.getElementById("cleanupLog")
 
-            const API="http://127.0.0.1:5000"
+    btn.disabled = true
+    btn.textContent = "Running…"
+    log.style.display = "block"
+    log.textContent = "Initiating cleanup...\n"
 
-            let macroBar
-            let dietPie
-            let scatterChart
-            let heatmapChart
+    try {
+      const res  = await fetch("/api/cleanup", { method: "POST" })
+      const data = await res.json()
 
+      if (data.success) {
+        let output = `✅ Cleanup completed at ${new Date(data.timestamp).toLocaleString()}\n`
+        output    += `   Initiated by: ${data.initiated_by}\n`
+        output    += `   Mode: ${data.simulated ? "Simulated (safe)" : "Live"}\n\n`
+        data.steps.forEach(s => {
+          output += `  ✓ ${s.resource}: ${s.action} (${s.count})\n`
+        })
+        output += `\n${data.message}`
+        log.textContent = output
+        btn.textContent = "✅ Done"
+      } else {
+        log.textContent = "❌ Cleanup failed."
+        btn.disabled = false
+        btn.textContent = "🧹 Clean Up Resources"
+      }
+    } catch (e) {
+      log.textContent = "❌ Error: " + e.message
+      btn.disabled = false
+      btn.textContent = "🧹 Clean Up Resources"
+    }
+  }
 
-            function showInsights(){
+  // ═══════════════════════════════════════════════════════════════════════
+  // CHARTS & DATA
+  // ═══════════════════════════════════════════════════════════════════════
+  async function loadInsights() {
+    const res    = await fetch(API + "/api/insights")
+    const data   = await res.json()
+    const labels = Object.keys(data)
+    const protein = labels.map(d => data[d]["Protein(g)"])
+    const carbs   = labels.map(d => data[d]["Carbs(g)"])
+    const fat     = labels.map(d => data[d]["Fat(g)"])
 
-                document.getElementById("insightsSection")
-                document.getElementById("recipesSection")
-            }
+    if (macroBar) macroBar.destroy()
+    if (dietPie)  dietPie.destroy()
 
-            function showRecipes(){
+    macroBar = new Chart(document.getElementById("macroBar"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Protein", data: protein },
+          { label: "Carbs",   data: carbs },
+          { label: "Fat",     data: fat },
+        ],
+      },
+      options: { responsive: true, maintainAspectRatio: false },
+    })
 
-                document.getElementById("insightsSection")
-                document.getElementById("recipesSection")
+    dietPie = new Chart(document.getElementById("dietPie"), {
+      type: "pie",
+      data: { labels, datasets: [{ data: protein }] },
+      options: { responsive: true, maintainAspectRatio: false },
+    })
 
-            }
+    const scatterData = labels.map((d, i) => ({ x: protein[i], y: carbs[i] }))
+    if (scatterChart) scatterChart.destroy()
+    scatterChart = new Chart(document.getElementById("scatterChart"), {
+      type: "scatter",
+      data: { datasets: [{ label: "Protein vs Carbs", data: scatterData }] },
+      options: { responsive: true, maintainAspectRatio: false },
+    })
 
+    drawHeatmap()
+  }
 
-            async function loadInsights(){
+  async function loadRecipes() {
+    const diet = document.getElementById("dietFilter").value
+    let url    = API + "/api/recipes"
+    if (diet) url += "?diet_type=" + diet
 
-                showInsights()
+    const res  = await fetch(url)
+    allRecipes = await res.json()
+    currentPage = 1
+    renderRecipePage()
+  }
 
-                const response = await fetch(API+"/api/insights")
-                const data = await response.json()
+  function renderRecipePage() {
+    const tbody = document.querySelector("#recipeTable tbody")
+    const start = (currentPage - 1) * PAGE_SIZE
+    const page  = allRecipes.slice(start, start + PAGE_SIZE)
 
-                const labels = Object.keys(data)
+    tbody.innerHTML = page.map(r => `
+      <tr>
+        <td>${r.Diet_type.charAt(0).toUpperCase() + r.Diet_type.slice(1)}</td>
+        <td>${r.Recipe_name}</td>
+        <td>${r.Cuisine_type}</td>
+        <td>${r["Protein(g)"]}</td>
+        <td>${r["Carbs(g)"]}</td>
+        <td>${r["Fat(g)"]}</td>
+      </tr>`).join("")
 
-                const protein = labels.map(d=>data[d]["Protein(g)"])
-                const carbs = labels.map(d=>data[d]["Carbs(g)"])
-                const fat = labels.map(d=>data[d]["Fat(g)"])
+    renderPagination()
+  }
 
-                if(macroBar){ macroBar.destroy() }
-                if(dietPie){ dietPie.destroy() }
+  function renderPagination() {
+    const total = Math.ceil(allRecipes.length / PAGE_SIZE)
+    const pg    = document.getElementById("pagination")
+    pg.innerHTML = ""
 
-                macroBar = new Chart(document.getElementById("macroBar"),{
-                    type:'bar',
-                    data:{
-                        labels:labels,
-                        datasets:[
-                            {label:"Protein",data:protein},
-                            {label:"Carbs",data:carbs},
-                            {label:"Fat",data:fat}
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false
-                    }
-                })
+    const addBtn = (label, page, active) => {
+      const b = document.createElement("button")
+      b.className = "page-btn" + (active ? " active" : "")
+      b.textContent = label
+      b.onclick = () => { currentPage = page; renderRecipePage() }
+      pg.appendChild(b)
+    }
 
-                dietPie = new Chart(document.getElementById("dietPie"),{
-                    type:'pie',
-                    data:{
-                        labels:labels,
-                        datasets:[{
-                            data:protein
-                        }]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false
-                    }
-                })
+    if (currentPage > 1) addBtn("Previous", currentPage - 1, false)
+    for (let i = 1; i <= Math.min(total, 5); i++) addBtn(i, i, i === currentPage)
+    if (currentPage < total) addBtn("Next", currentPage + 1, false)
+  }
 
-                const scatterData = labels.map((diet,i)=>({
-                    x: protein[i],
-                    y: carbs[i]
-                }))
+  function loadClusters() {
+    if (scatterChart) scatterChart.destroy()
+    scatterChart = new Chart(document.getElementById("scatterChart"), {
+      type: "scatter",
+      data: {
+        datasets: [
+          { label: "High Protein", data: [{x:200,y:50},{x:180,y:40},{x:160,y:60}] },
+          { label: "Balanced",     data: [{x:80,y:90},{x:70,y:110},{x:90,y:100}] },
+          { label: "High Carb",    data: [{x:20,y:200},{x:30,y:180},{x:25,y:220}] },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { min:0, max:250, title:{display:true,text:"Protein"} },
+          y: { min:0, max:250, title:{display:true,text:"Carbs"} },
+        },
+      },
+    })
+  }
 
-                if(scatterChart){
-                    scatterChart.destroy()
-                }
+  function drawHeatmap() {
+    if (heatmapChart) heatmapChart.destroy()
+    heatmapChart = new Chart(document.getElementById("heatmapChart"), {
+      type: "bar",
+      data: {
+        labels: ["Protein-Carbs","Protein-Fat","Carbs-Fat"],
+        datasets: [{ label: "Correlation", data: [0.6, 0.5, 0.7] }],
+      },
+      options: { responsive: true, maintainAspectRatio: false },
+    })
+  }
 
-                scatterChart = new Chart(document.getElementById("scatterChart"),{
-                    type:'scatter',
-                    data:{
-                        datasets:[{
-                            label:"Protein vs Carbs",
-                            data:scatterData
-                        }]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false
-                    }
-                })
-
-                drawHeatmap()
-            }
-
-
-
-            async function loadRecipes(){
-
-                showRecipes()
-
-                let diet=document.getElementById("dietFilter").value
-
-                let url=API+"/api/recipes"
-
-                if(diet){
-                    url+="?diet_type="+diet
-                }
-
-                const response = await fetch(url)
-                const data = await response.json()
-
-                const table=document.querySelector("#recipeTable tbody")
-
-                table.innerHTML=""
-
-                data.slice(0, 20).forEach(r=>{
-
-                let row=`
-                    <tr>
-                    <td>${r.Diet_type.charAt(0).toUpperCase() + r.Diet_type.slice(1)}</td>
-                    <td>${r.Recipe_name}</td>
-                    <td>${r.Cuisine_type}</td>
-                    <td>${r["Protein(g)"]}</td>
-                    <td>${r["Carbs(g)"]}</td>
-                    <td>${r["Fat(g)"]}</td>
-                    </tr>
-                    `
-
-                    table.innerHTML+=row
-
-                })
-
-
-                const scatterData=data.slice(0,100).map(r=>({
-                    x:r["Protein(g)"],
-                    y:r["Carbs(g)"]
-                }))
-
-
-                if(scatterChart){
-                    scatterChart.destroy()
-                }
-
-                scatterChart = new Chart(document.getElementById("scatterChart"),{
-                    type:'scatter',
-                    data:{
-                        datasets:[
-                            {
-                                label:"High Protein",
-                                data:[{x:200,y:50},{x:180,y:40},{x:160,y:60}]
-                            },
-                            {
-                                label:"Balanced",
-                                data:[{x:80,y:90},{x:70,y:110},{x:90,y:100}]
-                            },
-                            {
-                                label:"High Carb",
-                                data:[{x:20,y:200},{x:30,y:180},{x:25,y:220}]
-                            }
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false,
-                        scales:{
-                            x:{
-                                min:0,
-                                max:250,
-                                title:{display:true,text:"Protein"}
-                            },
-                            y:{
-                                min:0,
-                                max:250,
-                                title:{display:true,text:"Carbs"}
-                            }
-                        }
-                    }
-                })  
-            }
-
-            function drawHeatmap(){
-
-                const heatmapData = [
-                    {x:"Protein", y:"Carbs", v:0.6},
-                    {x:"Protein", y:"Fat", v:0.5},
-                    {x:"Carbs", y:"Fat", v:0.7}
-                ]
-
-                if(heatmapChart){
-                    heatmapChart.destroy()
-                }
-
-                heatmapChart = new Chart(document.getElementById("heatmapChart"),{
-                    type:"bar",
-                    data:{
-                        labels:["Protein-Carbs","Protein-Fat","Carbs-Fat"],
-                        datasets:[{
-                            label:"Correlation",
-                            data:heatmapData.map(d=>d.v)
-                        }]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false
-                    }
-                })
-            }
-
-            function loadClusters(){
-
-                showInsights()
-
-                if(scatterChart){
-                    scatterChart.destroy()
-                }
-
-                scatterChart = new Chart(document.getElementById("scatterChart"),{
-                    type:'scatter',
-                    data:{
-                        datasets:[
-                            {
-                                label:"High Protein",
-                                data:[{x:200,y:50},{x:180,y:40},{x:160,y:60}]
-                            },
-                            {
-                                label:"Balanced",
-                                data:[{x:80,y:90},{x:70,y:110},{x:90,y:100}]
-                            },
-                            {
-                                label:"High Carb",
-                                data:[{x:20,y:200},{x:30,y:180},{x:25,y:220}]
-                            }
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio:false,
-                        scales:{
-                            x:{
-                                min:0,
-                                max:250,
-                                title:{
-                                    display:true,
-                                    text:"Protein"
-                                }
-                            },
-                            y:{
-                                min:0,
-                                max:250,
-                                title:{
-                                    display:true,
-                                    text:"Carbs"
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-
-
-            window.onload = function () {
-                loadInsights()
-                drawHeatmap()
-                loadRecipes()
-            }
-
-        </script>
-    </body>
+  // ═══════════════════════════════════════════════════════════════════════
+  // Bootstrap
+  // ═══════════════════════════════════════════════════════════════════════
+  const params = new URLSearchParams(window.location.search)
+  if (params.get("step") === "2fa") {
+    // Returned from OAuth callback, go straight to 2FA panel
+    history.replaceState({}, "", "/")
+  }
+  checkAuth()
+</script>
+</body>
 </html>
